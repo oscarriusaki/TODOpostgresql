@@ -1,10 +1,9 @@
 # Nota:
 
-1. Primeramente crear la base de datos y hacer funcionar en MYSQL
+1. Primeramente crear la base de datos y hacer funcionar en POSTGRESQL
 2. Crear la base de datos y las tablas copiando desde el archivo "BaseDeDatos.txt" o copear lo siguiente
 
 ```
-
 /* creando base de datos */
 
 create database gestionar;
@@ -13,7 +12,7 @@ create database gestionar;
 
 create table usuario (
 
-	id_usuario int auto_increment,
+	id_usuario serial not null,
 	nombre varchar(50) not null,
 	pass text not null,
     correo text not null unique,
@@ -24,15 +23,11 @@ create table usuario (
 
 );
 
-/* insertar un registro */
-
-insert into usuario (nombre, correo, pass, token, fecha, estado) values ("oscar", "oscar@gmail.com", "12345", 1, "2022/11/2","1");
-
 /* crear tabla tarea */
 
 create table tarea (
 
-    id_tarea int auto_increment not null,
+    id_tarea serial not null,
     titulo varchar(50) not null,
     descripcion text not null,
     fecha date not null,
@@ -45,21 +40,18 @@ create table tarea (
 
 );
 
-/* insertando tarea */
-
-insert into tarea (titulo, descripcion, finalizada, id_usuario, estado, fecha) values ( "task1", "this is the first task", 1, 1, 1, "2022/10/29" );
 ```
 
 3. Clonar la carpeta
 
 ```
-git clone https://github.com/oscarriusaki/listaTODO1.git
+git clone https://github.com/oscarriusaki/TODOpostgresql.git
 ```
 
 4. Con la terminal ingresar dentro de la carpeta clonada
 
 ```
-cd listaTODO1
+cd TODOpostgresql
 ```
 
 5. Para descargar los packetes en la terminal escribir
@@ -78,5 +70,4 @@ nodemon app
    ahora puede hacer pruebas de error o registrar otros usuarios, hacer login etc. con algun programa,
    recomendado POSTMAN u otro.
 
-8. Recomendar crear otro usuario, no usar el usuario creado en el paso 2 grasias.
-9. Cualquier duda del codigo porfavor comunicarse con el desarollador BACKEND...
+8. Cualquier duda del codigo porfavor comunicarse con el desarollador BACKEND...

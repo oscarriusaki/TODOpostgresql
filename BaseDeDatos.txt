@@ -1,4 +1,3 @@
-
 /* creando base de datos */
 
 create database gestionar;
@@ -7,7 +6,7 @@ create database gestionar;
 
 create table usuario (
 
-	id_usuario int auto_increment,
+	id_usuario serial not null,
 	nombre varchar(50) not null,
 	pass text not null,
     correo text not null unique,
@@ -18,15 +17,11 @@ create table usuario (
 
 );
 
-/* insertar un registro */
-
-insert into usuario (nombre, correo, pass, token, fecha, estado) values ("oscar", "oscar@gmail.com", "12345", 1, "2022/11/2","1");
-
 /* crear tabla tarea */
 
 create table tarea (
 
-    id_tarea int auto_increment not null,
+    id_tarea serial not null,
     titulo varchar(50) not null,
     descripcion text not null,
     fecha date not null,
@@ -38,7 +33,3 @@ create table tarea (
     constraint fk_id_usuario foreign key (id_usuario) references usuario(id_usuario)
 
 );
-
-/* insertando tarea */
-
-insert into tarea (titulo, descripcion, finalizada, id_usuario, estado, fecha) values ( "task1", "this is the first task", 1, 1, 1, "2022/10/29" );
