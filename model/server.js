@@ -26,10 +26,10 @@ class Server {
     }
     async database(req, res = response){
 
-        const mysql = await db;
+        const pg = await db;
 
         // conectamos a la base de datos
-        mysql.connect(function(err, result, fields){
+        pg.connect((err, client, release) => {
             
             try{
 
@@ -41,8 +41,8 @@ class Server {
                 if(err){
                     
                     return res.status(500).json({
-                        msg: err.sqlMessage
-                    })   ;
+                        msg: err
+                    });
 
                 }else{
 

@@ -3,28 +3,27 @@ const db = require("../database/config");
 
 const getTareas = (req, res = response) => {
 
-    const mysql = db;
+    const pg = db;
 
-    const sql = 'SELECT * FROM tarea WHERE estado = ?';
+    const sql = 'SELECT * FROM tarea WHERE estado = $1 ORDER BY id_tarea desc';
     
-    mysql.query( sql, [ 1 ], function(err, result){
+    pg.query( sql, [ 1 ], (err, result) => {
         
         if(err){
             
             return res.status(500).json({
-                msg: err.sqlMessage
+                code: err.code, 
+                name: err.name, 
+                hint: err.hint,
+                detail: err.detail,
             });
 
         }else{
-
-            result.map(resp => {
-                return {...resp}
-            });
             
-            if(result.length !== 0){
+            if(result.rows.length !== 0){
 
                 return res.status(200).json({
-                    msg: result
+                    msg: result.rows
                 });
 
             }else{
@@ -43,26 +42,29 @@ const getTareas = (req, res = response) => {
 
 const getTarea = async (req, res = response) => {
     
-    const mysql = await db;
+    const pg = await db;
     
     const { id } = req.params;
     
-    const sql = 'SELECT * FROM TAREA WHERE id_tarea = ? and estado = ?';
+    const sql = 'SELECT * FROM TAREA WHERE id_tarea = $1 and estado = $2';
 
-    mysql.query( sql, [ id, 1], function(err, result){
+    pg.query( sql, [ id, 1], (err, result) => {
         
         if(err){
             
             return res.status(500).json({
-                msg: err.sqlMessage
+                code: err.code, 
+                name: err.name, 
+                hint: err.hint,
+                detail: err.detail,
             });
 
         }else{
 
-            if(result.length === 1){
+            if(result.rows.length === 1){
                 
                     return res.status(200).json({
-                        msg: result[0]
+                        msg: result.rows
                     });
 
             }else{
@@ -81,7 +83,7 @@ const getTarea = async (req, res = response) => {
 
 const postTarea = async(req, res = response) => {
 
-    const mysql = await db;
+    const pg = await db;
     const id_usuario_logueado = req.usuario.id_usuario;
     
     const { id_tarea, ... tarea} = req.body;
@@ -90,19 +92,21 @@ const postTarea = async(req, res = response) => {
     const mm = new Date().getMonth()+1;
     const dd = new Date().getDate();
 
-    const sql = 'INSERT INTO TAREA (titulo, descripcion, fecha, estado, id_usuario) values (?,?,?,?,?)';
+    const sql = 'INSERT INTO TAREA (titulo, descripcion, fecha, estado, finalizada, id_usuario) values ($1,$2,$3,$4,$5,$6)';
 
-    mysql.query( sql, [ tarea.titulo, tarea.descripcion, ( yy +"/"+mm+"/"+dd ), 1, id_usuario_logueado], function(err, result){
-        
+    pg.query( sql, [ (tarea.titulo), (tarea.descripcion), ( yy +"/"+mm+"/"+dd ), 1, 0, id_usuario_logueado], (err, result) => {
         if(err){
             
             return res.status(500).json({
-                msg: err.sqlMessage
+                code: err.code, 
+                name: err.name, 
+                hint: err.hint,
+                detail: err.detail,
             });
-
+            
         }else{
-
-            if(result.affectedRows === 1){
+            
+            if(result.rowCount === 1){
 
                 return res.status(200).json({
                     msg: 'Tarea registrado'
@@ -123,7 +127,7 @@ const postTarea = async(req, res = response) => {
 
 const putTarea = async (req, res = response) => {
 
-    const mysql = await db;
+    const pg = await db;
     const usuario_logueado = req.usuario.id_usuario;
     
     const { id } = req.params;
@@ -133,34 +137,40 @@ const putTarea = async (req, res = response) => {
     const mm = new Date().getMonth()+1;
     const dd = new Date().getDate();
 
-    const sql = 'SELECT * FROM TAREA WHERE id_tarea = ? AND estado = ?';
-    const sql2 = 'UPDATE TAREA SET titulo = ?, descripcion = ?, finalizada = ?, fecha = ? WHERE id_tarea = ?';
+    const sql = 'SELECT * FROM TAREA WHERE id_tarea = $1 AND estado = $2';
+    const sql2 = 'UPDATE TAREA SET titulo = $1, descripcion = $2, finalizada = $3, fecha = $4 WHERE id_tarea = $5';
 
-    mysql.query( sql, [ id, 1], function(err, result){
+    pg.query( sql, [ id, 1], (err, result) => {
 
         if(err){
             
             return res.status(500).json({
-                msg: err.sqlMessage
+                code: err.code, 
+                name: err.name, 
+                hint: err.hint,
+                detail: err.detail,
             });
             
         }else{
 
-            if(result.length === 1){
+            if(result.rows.length === 1){
 
-                if(result[0].id_usuario === usuario_logueado){
+                if(result.rows[0].id_usuario === usuario_logueado){
     
-                    mysql.query( sql2,[ tarea.titulo, tarea.descripcion, tarea.finalizada, ( yy +"/"+mm+"/"+dd ), id], function(err, result){
+                    pg.query( sql2,[ tarea.titulo, tarea.descripcion, tarea.finalizada, ( yy +"/"+mm+"/"+dd ), id], (err, result) => {
                         
                         if(err){
     
                             return res.status(500).json({
-                                msg: err.sqlMessage
+                                code: err.code, 
+                                name: err.name, 
+                                hint: err.hint,
+                                detail: err.detail,
                             });
     
                         }else{
     
-                            if(result.affectedRows === 1){
+                            if(result.rowCount === 1){
                                 
                                 return res.status(200).json({
                                     msg: 'Tarea actualizada'
@@ -192,7 +202,7 @@ const putTarea = async (req, res = response) => {
                     msg: `No se encontro una tarea con el id ${id}`
                 });
 
-            }
+            }   
 
         }
 
@@ -202,39 +212,45 @@ const putTarea = async (req, res = response) => {
 
 const deleteTarea = async (req, res = response) => {
     
-    const mysql = await db;
+    const pg = await db;
     const usuario_logueado = req.usuario.id_usuario;
     
     const { id } = req.params;
 
-    const sql = `SELECT * FROM TAREA WHERE id_tarea = ? AND estado = ?`;
-    const sql2 = `UPDATE TAREA SET estado = ? WHERE id_tarea = ?`;
+    const sql = 'SELECT * FROM TAREA WHERE id_tarea = $1 AND estado = $2';
+    const sql2 = 'UPDATE TAREA SET estado = $1 WHERE id_tarea = $2';
 
-    mysql.query( sql, [ id, 1], function(err, result) {
+    pg.query( sql, [ id, 1], (err, result) => {
         
         if(err){
             
             return res.status(500).json({
-                msg: err.sqlMessage
+                code: err.code, 
+                name: err.name, 
+                hint: err.hint,
+                detail: err.detail,
             });
 
         }else{
 
-            if(result.length === 1){
+            if(result.rows.length === 1){
 
-                if(result[0].id_usuario === usuario_logueado){
+                if(result.rows[0].id_usuario === usuario_logueado){
 
-                    mysql.query( sql2, [ 0, id], function(err, result){
+                    pg.query( sql2, [ 0, id], (err, result) => {
 
                         if(err){
 
                             return res.status(500).json({
-                                msg: err.sqlMessage
+                                code: err.code, 
+                                name: err.name, 
+                                hint: err.hint,
+                                detail: err.detail,
                             });
 
                         }else{
 
-                            if(result.affectedRows === 1){
+                            if(result.rowCount === 1){
 
                                 return res.status(200).json({
                                     msg: 'tarea eliminado'
@@ -278,54 +294,64 @@ const finalizarTarea = async ( req, res = response) => {
     // finalizada = 1 -> se finalizo la tarea
     // finalizada = 0 -> no se finalizo la tarea
 
-    const mysql = await db;
+    const pg = await db;
     const usuario_logueado = req.usuario.id_usuario;
 
     const { id } = req.params;
+    
+    const sql = 'SELECT * FROM TAREA WHERE id_tarea = $1 and estado = $2 AND id_usuario = $3';
+    const sql2 = 'UPDATE TAREA SET finalizada = $1 WHERE id_tarea = $2 AND estado = $3 AND id_usuario = $4';
+    // const sql2 = 'UPDATE TAREA SET finalizada = !(SELECT finalizada FROM TAREA WHERE id_tarea = $1 and estado = $2 AND id_usuario = $3) WHERE id_tarea = $4 AND estado = $5 AND id_usuario = $6';
 
-    const sql = 'SELECT * FROM TAREA WHERE id_tarea = ? and estado = ? AND id_usuario = ?';
-    // const sql2 = 'UPDATE TAREA SET finalizada = !finalizada WHERE id_tarea = ? AND estado = ? AND id_usuario = ?';
-    const sql2 = 'UPDATE TAREA SET finalizada = !(SELECT finalizada FROM TAREA WHERE id_tarea = ? and estado = ? AND id_usuario = ?) WHERE id_tarea = ? AND estado = ? AND id_usuario = ?';
-
-    mysql.query( sql, [ id, 1, usuario_logueado], function(err, result){
+    pg.query( sql, [ id, 1, usuario_logueado], (err, result)=>{
         
         if(err){
 
             return res.status(500).json({
-                msg: err.sqlMessage
+                code: err.code, 
+                name: err.name, 
+                hint: err.hint,
+                detail: err.detail,
             });
 
         }else{
 
-            if(result.length === 1){
+            const r = !(result.rows[0].finalizada)*1;
 
-                // mysql.query( sql2, [ id, 1, usuario_logueado ], function (err, result){
-                mysql.query( sql2, [ id, 1, usuario_logueado, id, 1, usuario_logueado], function(err, result){
+            if(result.rows.length === 1){
 
+                pg.query( sql2, [ r, id, 1, usuario_logueado ], (err, result)=>{
+                // pg.query( sql2, [ id, 1, usuario_logueado, id, 1, usuario_logueado], (err, result) =>{
+                  
                     if(err){
-                        
                         return res.status(500).json({
-                            msg: err.sqlMessage
+                            code: err.code, 
+                            name: err.name, 
+                            hint: err.hint,
+                            detail: err.detail,
                         });
 
                     }else{
 
-                        if(result.affectedRows === 1){
+                        if(result.rowCount === 1){
                             
-                            mysql.query( sql, [ id, 1, usuario_logueado], function(err, result){
-
+                            pg.query( sql, [ id, 1, usuario_logueado], (err, result) =>{
+ 
                                 if(err){
                                     
                                     return res.json({
-                                        msg: err.sqlMessage
+                                        code: err.code, 
+                                        name: err.name, 
+                                        hint: err.hint,
+                                        detail: err.detail,
                                     });
 
                                 }else{
 
-                                    if(result.length === 1){
+                                    if(result.rows.length === 1){
 
                                         return res.status(200).json({
-                                            msg: (result[0].finalizada === 1)? 'Tarea finalizada': 'Tarea no finalizada'
+                                            msg: (result.rows[0].finalizada === 1)? 'Tarea finalizada': 'Tarea no finalizada'
                                          });
 
                                     }else{

@@ -16,25 +16,27 @@ const validarJWT = async(req = request, res = response, next) => {
 
     try{
 
-        const mysql = await db;
-        const sql = 'SELECT * FROM USUARIO WHERE correo = ? and estado = ?';
+        const pg = await db;
+        const sql = 'SELECT * FROM USUARIO WHERE correo = $1 and estado = $2';
         
         const { correo } = await jwt.verify(token, process.env.SECRETORPRIVATEKEY);
         
 
-        mysql.query( sql, [ correo, 1], function(err, result) {
+        pg.query( sql, [ correo, 1], (err, result) => {
             
             if(err){
 
                 return res.status(500).json({
-                    msg: err.sqlMessage
+                    code: err.code, 
+                    name: err.name, 
+                    hint: err.hint
                 });
 
             }else{
                 
-                if(result.length === 1){
+                if(result.rows.length === 1){
 
-                    req.usuario = result[0];
+                    req.usuario = result.rows[0];
                     next();
 
                 }else{
@@ -70,11 +72,11 @@ module.exports = {
 
 // const validarJWT = async(req = request, res = response, next) => {
     
-//     const mysql = await db;
+//     const pg = await db;
 //     const { id } = req.params;
 
 //     const sql = `SELECT * FROM usuario WHERE id_usuario = ? and estado = ?`;
-//     mysql.query(sql, [id, 1], function(err, result){
+//     pg.query(sql, [id, 1], function(err, result){
         
 //         if(err){
             

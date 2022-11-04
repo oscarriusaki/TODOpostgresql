@@ -5,35 +5,38 @@ const db = require('../database/config');
 
 const login = async (req, res = response) => {
     
-    const mysql = await db;
+    const pg = await db;
     let token = '';
 
     const { pass, correo } = req.body;
     
-    const sql = 'SELECT * FROM usuario WHERE correo = ? AND estado = ?'; // <- esta linea es para evitar injeccion sql
-    const sql2 = 'UPDATE usuario SET token = ? WHERE id_usuario = ? and correo = ? and estado = ? '; // <- esta linea es para evitar injeccion sql
+    const sql = 'SELECT * FROM usuario WHERE correo = $1 AND estado = $2'; // <- esta linea es para evitar injeccion sql
+    const sql2 = 'UPDATE usuario SET token = $1 WHERE id_usuario = $2 and correo = $3 and estado = $4 '; // <- esta linea es para evitar injeccion sql
 
-    mysql.query( sql,[ correo, 1], async function(err , result){
-        
+    pg.query( sql,[ correo, 1], async (err , result) =>{
+        console.log(result.rows);
         if(err){
 
             return res.status(500).json({
-                msg: err.sqlMessage
+                code: err.code, 
+                name: err.name, 
+                hint: err.hint,
+                detail: err.detail,
             });
             
         }else{
 
-            result.map(resp => (
+           /*  result.map(resp => (
                  {...resp[0]}
-            ));
+            )); */
 
-            if(result.length === 1){
+            if(result.rows.length === 1){
                 
                 // ponemos un try{}catch(){} si hay error al desincriptar o al generar token y para algun otro error
                 try{
-                    
+
                     // desincriptamos la contrasenia 
-                    const validarPassword = bcryptjs.compareSync(pass, result[0].pass);
+                    const validarPassword = bcryptjs.compareSync(pass, result.rows[0].pass);
                     
                     if( validarPassword ){
 
@@ -41,12 +44,15 @@ const login = async (req, res = response) => {
                         token = await generarJWT(correo);
 
         
-                        mysql.query(sql2, [token, result[0].id_usuario, result[0].correo,1], function(err, result){
+                        pg.query(sql2, [token, result.rows[0].id_usuario, result.rows[0].correo,1], (err, result) =>{
                             
                             if(err){
 
                                 return res.status(500).json({
-                                    msg: err.sqlMessage
+                                    code: err.code, 
+                                    name: err.name, 
+                                    hint: err.hint,
+                                    detail: err.detail,
                                 });
 
                             }else{
@@ -69,7 +75,7 @@ const login = async (req, res = response) => {
                     }
                     
                 }catch(err){
-
+                    console.log(err);
                     return res.status(500).json({
                         msg: 'Hable con el administrador'
                     });
