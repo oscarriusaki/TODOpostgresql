@@ -7,7 +7,47 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>App</h1>
+    <h1>Google SignIn</h1>
     <hr>
+
+    <div id="g_id_onload"
+        data-client_id="447030380492-far0udl6d2h8e8bk8212tv186ilc7v6l.apps.googleusercontent.com"
+        data-auto_prompt="false"
+        data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="sign_in_with"
+        data-shape="rectangular"
+        data-logo_alignment="left">
+    </div>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <script>
+        function handleCredentialResponse(response) {
+    
+            // google token : ID_TOKEN
+        //    console.log(response.credential)
+        console.log(response.credential)
+        const body = {id_token: response.credential};
+        fetch('http://localhost:8080/login/google',{
+            method:'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body),
+        })
+            .then( resp =>resp.json())
+            .then( resp => {
+                console.log(resp);
+            })
+            .catch(console.warn)
+    
+        }
+    </script>
+
 </body>
 </html>

@@ -58,7 +58,7 @@ class Server {
                     console.log('Error:500 no se conecto con la base de datos vuelva a levantar el servidor');
                 }
 
-            }
+        }
 
         }) 
         
